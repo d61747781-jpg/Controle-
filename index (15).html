@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Controle de Cursos e ASO</title>
+
+<style>
+:root {
+    --bg-app: #121619;
+    --card-bg: #1a2126;
+    --text-main: #ffffff;
+    --text-muted: #9aa0a6;
+    --border-color: #2c353d;
+}
+
+*{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body{
+    background: var(--bg-app);
+    color: var(--text-main);
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.app-container {
+    width: 100%;
+    max-width: 480px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 15px;
+    padding-top: 10px;
+}
+
+h1 {
+    font-size: 1.4rem;
+    color: var(--text-main);
+    margin-bottom: 5px;
+}
+
+p.subtitle {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* Indicador de Salvamento Estilo Google Docs */
+.docs-save-status {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.status-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.save-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background-color: #28a745;
+    transition: background-color 0.3s ease;
+}
+
+.save-dot.salvando {
+    background-color: #ffc107;
+    animation: blink 0.8s infinite alternate;
+}
+
+@keyframes blink {
+    0% { opacity: 0.3; }
+    100% { opacity: 1; }
+}
+
+.btn-manual-save {
+    background: #2c353d;
+    border: 1px solid var(--border-color);
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--text-main);
+}
+
+.btn-manual-save:hover {
+    background: #3a4652;
+}
+
+/* Painel de Resumo Clicável */
+.dashboard-summary {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.dashboard-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+}
+
+.summary-card {
+    border-radius: 8px;
+    padding: 8px 4px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.1s;
+}
+
+.summary-card:active {
+    transform: scale(0.95);
+}
+
+.summary-card.active-filter {
+    border-color: #ffffff;
+}
+
+.summary-card .number {
+    font-size: 1.1rem;
+    font-weight: 800;
+}
+
+.summary-card .label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+.bg-critico { background: #dc3545; color: white; }
+.bg-fraco { background: #ff7675; color: #1a2126; }
+.bg-amarelo { background: #ffeaa7; color: #1a2126; }
+.bg-verde { background: #55efc4; color: #1a2126; }
+
+.filter-hint {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 8px;
+    font-style: italic;
+}
+
+.status-bar-container {
+    height: 8px;
+    width: 100%;
+    background: #2c353d;
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    margin-top: 10px;
+}
+
+.bar-segment {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.curso-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-left: 6px solid #ccc;
+}
+
+.curso-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.funcionario-nome {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-status {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+}
+
+.curso-info-topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.curso-titulo {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.validade-badge {
+    font-size: 0.65rem;
+    background: #2c353d;
+    color: #a0aec0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.curso-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 4px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+}
+
+.date-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.date-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+input[type=date]{
+    padding: 6px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    background: #121619;
+    color: var(--text-main);
+}
+
+.card-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.btn-action {
+    background: #2c353d;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--text-main);
+}
+
+.btn-action:hover {
+    background: #3a4652;
+}
+
+.btn-delete {
+    background: #4a2328;
+    color: #f8d7da;
+}
+
+.btn-anexo {
+    background: #1d4ed8;
+    color: white;
+}
+
+.status-verde { border-left-color: #55efc4; }
+.status-verde .badge-status { background: rgba(85, 239, 196, 0.2); color: #55efc4; }
+
+.status-amarelo { border-left-color: #ffeaa7; }
+.status-amarelo .badge-status { background: rgba(255, 234, 167, 0.2); color: #ffeaa7; }
+
+.status-vermelho-fraco { border-left-color: #ff7675; }
+.status-vermelho-fraco .badge-status { background: rgba(255, 118, 117, 0.2); color: #ff7675; }
+
+.status-vermelho-forte { border-left-color: #dc3545; }
+.status-vermelho-forte .badge-status { background: #dc3545; color: #ffffff; }
+
+.btn-adicionar {
+    width: 100%;
+    background: #1e3a8a;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.btn-adicionar:hover {
+    background: #1d4ed8;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app-container">
+    <header>
+        <h1>Controle de Vencimentos</h1>
+        <p class="subtitle">Cursos e ASO • Offshore</p>
+    </header>
+
+    <div class="docs-save-status">
+        <div class="status-info">
+            <div id="save-dot" class="save-dot"></div>
+            <span id="save-text">Todas as alterações salvas</span>
+        </div>
+        <button class="btn-manual-save" onclick="salvarImediato()">Salvar Agora</button>
+    </div>
+
+    <div class="dashboard-summary">
+        <div class="dashboard-title">Visão Geral dos Vencimentos</div>
+        <div class="summary-grid">
+            <div class="summary-card bg-critico" id="card-critico" onclick="filtrarStatus('critico')">
+                <span class="number" id="count-critico">0</span>
+                <span class="label">0-30 dias</span>
+            </div>
+            <div class="summary-card bg-fraco" id="card-fraco" onclick="filtrarStatus('fraco')">
+                <span class="number" id="count-fraco">0</span>
+                <span class="label">31-60 dias</span>
+            </div>
+            <div class="summary-card bg-amarelo" id="card-amarelo" onclick="filtrarStatus('amarelo')">
+                <span class="number" id="count-amarelo">0</span>
+                <span class="label">61-90 dias</span>
+            </div>
+            <div class="summary-card bg-verde" id="card-verde" onclick="filtrarStatus('verde')">
+                <span class="number" id="count-verde">0</span>
+                <span class="label">+90 dias</span>
+            </div>
+        </div>
+
+        <div class="filter-hint" id="filtro-texto">Toque em um cartão acima para filtrar os cursos</div>
+
+        <div class="status-bar-container">
+            <div id="bar-critico" class="bar-segment" style="background:#dc3545; width:0%"></div>
+            <div id="bar-fraco" class="bar-segment" style="background:#ff7675; width:0%"></div>
+            <div id="bar-amarelo" class="bar-segment" style="background:#ffeaa7; width:0%"></div>
+            <div id="bar-verde" class="bar-segment" style="background:#55efc4; width:0%"></div>
+        </div>
+    </div>
+
+    <div id="lista-cards" class="card-list"></div>
+
+    <button class="btn-adicionar" onclick="adicionarCurso()">
+        + Adicionar Novo Curso
+    </button>
+</div>
+
+<script>
+
+const listaInicial = [
+    { funcionario: "DANIEL RODRIGUES AZEREDO", curso: "T-HUET", vencimento: "2029-05-28", validade: "Validade: 4 Anos", arquivo: null },
+    { funcionario: "DANIEL RODRIGUES AZEREDO", curso: "NR35 RESGATE", vencimento: "2028-10-22", validade: "Validade: 2 Anos", arquivo: null },
+    { funcionario: "DANIEL RODRIGUES AZEREDO", curso: "NR34 TRABALHO À QUENTE", vencimento: "2028-03-06", validade: "Validade: 2 Anos", arquivo: null },
+    { funcionario: "DANIEL RODRIGUES AZEREDO", curso: "NR34 PERIÓDICO", vencimento: "2027-03-02", validade: "Validade: 1 Ano", arquivo: null },
+    { funcionario: "DANIEL RODRIGUES AZEREDO", curso: "NR34 OBS. TRABALHO À QUENTE", vencimento: "2028-03-05", validade: "Validade: 2 Anos", arquivo: null },
+    { funcionario: "DANIEL RODRIGUES AZEREDO", curso: "NR34 ESTANQUEIDADE", vencimento: "2027-03-03", validade: "Validade: 1 Ano", arquivo: null },
+    { funcionario: "DANIEL RODRIGUES AZEREDO", curso: "NR11 MOVIMENTAÇÃO DE CARGA", vencimento: "2028-03-13", validade: "Validade: 2 Anos", arquivo: null },
+    { funcionario: "DANIEL RODRIGUES AZEREDO", curso: "NR35 TRABALHO EM ALTURA", vencimento: "2028-09-11", validade: "Validade: 2 Anos", arquivo: null },
+    { funcionario: "DANIEL RODRIGUES AZEREDO", curso: "NR12 MÁQUINAS E EQUIPAMENTOS", vencimento: "2028-03-09", validade: "Validade: 2 Anos", arquivo: null },
+    { funcionario: "DANIEL RODRIGUES AZEREDO", curso: "NR10 ELETRICIDADE", vencimento: "2028-03-09", validade: "Validade: 2 Anos", arquivo: null },
+    { funcionario: "DANIEL RODRIGUES AZEREDO", curso: "CBSP", vencimento: "2029-09-20", validade: "Validade: 5 Anos", arquivo: null },
+    { funcionario: "DANIEL RODRIGUES AZEREDO", curso: "ASO", vencimento: "2027-10-27", validade: "Validade: 1 Ano", arquivo: null }
+];
+
+let cursos = JSON.parse(localStorage.getItem("cursos_v16")) || listaInicial;
+let filtroAtual = null; 
+let timeoutSalvamento = null;
+
+function solicitarPermissaoNotificacao() {
+    if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+        Notification.requestPermission();
+    }
+}
+
+function verificarNotificacoes() {
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
+
+    cursos.forEach(curso => {
+        let dias = diasParaVencer(curso.vencimento);
+        let chaveNotif = `notif_${curso.curso}_${dias}`;
+
+        if ([90, 60, 30].includes(dias) || dias < 0) {
+            let ultimoEnvio = localStorage.getItem(chaveNotif);
+            let hojeStr = new Date().toDateString();
+
+            if (ultimoEnvio !== hojeStr) {
+                let mensagem = dias < 0 ? `O curso ${curso.curso} está VENCIDO!` : `Atenção: O curso ${curso.curso} vence em ${dias} dias!`;
+                
+                new Notification("Controle de Cursos Offshore", {
+                    body: mensagem
+                });
+
+                localStorage.setItem(chaveNotif, hojeStr);
+            }
+        }
+    });
+}
+
+function dispararSalvamentoAutomatico() {
+    const dot = document.getElementById("save-dot");
+    const text = document.getElementById("save-text");
+    
+    dot.classList.add("salvando");
+    text.innerText = "A salvar alterações...";
+
+    clearTimeout(timeoutSalvamento);
+    timeoutSalvamento = setTimeout(() => {
+        localStorage.setItem("cursos_v16", JSON.stringify(cursos));
+        dot.classList.remove("salvando");
+        text.innerText = "Todas as alterações salvas";
+    }, 600);
+}
+
+function salvarImediato() {
+    clearTimeout(timeoutSalvamento);
+    localStorage.setItem("cursos_v16", JSON.stringify(cursos));
+    const dot = document.getElementById("save-dot");
+    const text = document.getElementById("save-text");
+    dot.classList.remove("salvando");
+    text.innerText = "Todas as alterações salvas";
+}
+
+function diasParaVencer(data){
+    let hoje = new Date();
+    hoje.setHours(0,0,0,0);
+    let vencimento = new Date(data + 'T00:00:00');
+    let diferenca = Math.ceil((vencimento - hoje) / (1000 * 60 * 60 * 24));
+    return diferenca;
+}
+
+function filtrarStatus(tipo) {
+    if (filtroAtual === tipo) {
+        filtroAtual = null; 
+    } else {
+        filtroAtual = tipo;
+    }
+    atualizarTabela();
+}
+
+function atualizarTabela(){
+    const container = document.getElementById("lista-cards");
+    container.innerHTML = "";
+
+    let critico = 0, fraco = 0, amarelo = 0, verde = 0;
+
+    let cursosProcessados = cursos.map((curso, index) => {
+        let dias = diasParaVencer(curso.vencimento);
+        let categoria = "";
+
+        if (dias <= 30) {
+            categoria = "critico";
+            critico++;
+        } else if (dias <= 60) {
+            categoria = "fraco";
+            fraco++;
+        } else if (dias <= 90) {
+            categoria = "amarelo";
+            amarelo++;
+        } else {
+            categoria = "verde";
+            verde++;
+        }
+
+        return { curso, index, dias, categoria };
+    });
+
+    cursosProcessados.sort((a, b) => a.dias - b.dias);
+
+    document.getElementById("count-critico").innerText = critico;
+    document.getElementById("count-fraco").innerText = fraco;
+    document.getElementById("count-amarelo").innerText = amarelo;
+    document.getElementById("count-verde").innerText = verde;
+
+    let total = critico + fraco + amarelo + verde;
+    if(total > 0) {
+        document.getElementById("bar-critico").style.width = (critico / total * 100) + "%";
+        document.getElementById("bar-fraco").style.width = (fraco / total * 100) + "%";
+        document.getElementById("bar-amarelo").style.width = (amarelo / total * 100) + "%";
+        document.getElementById("bar-verde").style.width = (verde / total * 100) + "%";
+    }
+
+    document.querySelectorAll('.summary-card').forEach(c => c.classList.remove('active-filter'));
+    let textoFiltro = "Toque em um cartão acima para filtrar os cursos";
+
+    if (filtroAtual) {
+        document.getElementById(`card-${filtroAtual}`).classList.add('active-filter');
+        textoFiltro = `A exibir apenas: <b>${filtroAtual.toUpperCase()}</b> (Toque novamente para limpar)`;
+    }
+    document.getElementById("filtro-texto").innerHTML = textoFiltro;
+
+    let visiveis = 0;
+    cursosProcessados.forEach(item => {
+        if (filtroAtual && item.categoria !== filtroAtual) return;
+        visiveis++;
+
+        let classeStatus = "status-verde";
+        let textoStatus = `${item.dias} dias`;
+
+        if (item.categoria === "critico") {
+            classeStatus = "status-vermelho-forte";
+            textoStatus = item.dias < 0 ? `Vencido` : `${item.dias} dias`;
+        } else if (item.categoria === "fraco") {
+            classeStatus = "status-vermelho-fraco";
+            textoStatus = `${item.dias} dias`;
+        } else if (item.categoria === "amarelo") {
+            classeStatus = "status-amarelo";
+            textoStatus = `${item.dias} dias`;
+        }
+
+        let botaoAnexoHtml = `<button class="btn-action btn-anexo" onclick="anexarArquivo(${item.index})">📎 Anexar</button>`;
+        if (item.curso.arquivo) {
+            botaoAnexoHtml = `
+                <button class="btn-action btn-anexo" onclick="verAnexo(${item.index})">📂 Ver</button>
+                <button class="btn-action btn-delete" onclick="removerAnexo(${item.index})" title="Remover">❌</button>
+            `;
+        }
+
+        container.innerHTML += `
+        <div class="curso-card ${classeStatus}">
+            <div class="curso-header">
+                <span class="funcionario-nome">${item.curso.funcionario}</span>
+                <span class="badge-status">${textoStatus}</span>
+            </div>
+            <div class="curso-info-topo">
+                <div class="curso-titulo">${item.curso.curso}</div>
+                <div class="validade-badge">${item.curso.validade || 'Validade: 2 Anos'}</div>
+            </div>
+            <div class="curso-footer">
+                <div class="date-group">
+                    <span class="date-label">Vencimento:</span>
+                    <input type="date" value="${item.curso.vencimento}" onchange="alterarData(${item.index}, this.value)">
+                </div>
+                <div class="card-actions">
+                    ${botaoAnexoHtml}
+                    <button class="btn-action" onclick="editarCurso(${item.index})">✏️</button>
+                    <button class="btn-action btn-delete" onclick="excluirCurso(${item.index})">🗑️</button>
+                </div>
+            </div>
+        </div>
+        `;
+    });
+
+    if (visiveis === 0) {
+        container.innerHTML = `<div style="text-align:center; color:#9aa0a6; padding:20px;">Nenhum curso encontrado nesta categoria.</div>`;
+    }
+}
+
+function alterarData(index, novaData){
+    cursos[index].vencimento = novaData;
+    dispararSalvamentoAutomatico();
+    atualizarTabela();
+}
+
+function anexarArquivo(index) {
+    let input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*,application/pdf';
+    input.onchange = e => {
+        let file = e.target.files[0];
+        if (file) {
+            let reader = new FileReader();
+            reader.onload = function(event) {
+                cursos[index].arquivo = event.target.result;
+                dispararSalvamentoAutomatico();
+                atualizarTabela();
+                alert("Arquivo anexado com sucesso!");
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    input.click();
+}
+
+function verAnexo(index) {
+    let base64Data = cursos[index].arquivo;
+    if (!base64Data) return;
+    let win = window.open();
+    win.document.write(`<iframe src="${base64Data}" frameborder="0" style="border:0; top:0; left:0; bottom:0; right:0; width:100%; height:100%;" allowfullscreen></iframe>`);
+}
+
+function removerAnexo(index) {
+    if (confirm("Deseja remover o arquivo anexado deste curso?")) {
+        cursos[index].arquivo = null;
+        dispararSalvamentoAutomatico();
+        atualizarTabela();
+    }
+}
+
+function editarCurso(index){
+    let cursoAtual = cursos[index];
+    
+    let novoFuncionario = prompt("Nome do Funcionário:", cursoAtual.funcionario);
+    if(novoFuncionario === null) return;
+    
+    let novoNomeCurso = prompt("Nome do Curso:", cursoAtual.curso);
+    if(novoNomeCurso === null) return;
+
+    if(novoFuncionario.trim() !== "") cursoAtual.funcionario = novoFuncionario.toUpperCase();
+    if(novoNomeCurso.trim() !== "") cursoAtual.curso = novoNomeCurso.toUpperCase();
+
+    dispararSalvamentoAutomatico();
+    atualizarTabela();
+}
+
+function excluirCurso(index){
+    if(confirm(`Excluir o curso "${cursos[index].curso}"?`)){
+        cursos.splice(index, 1);
+        dispararSalvamentoAutomatico();
+        atualizarTabela();
+    }
+}
+
+function adicionarCurso(){
+    let funcionario = prompt("Nome do Funcionário:", "DANIEL RODRIGUES AZEREDO");
+    if(!funcionario) return;
+
+    let curso = prompt("Nome do Curso:");
+    if(!curso) return;
+
+    let vencimento = prompt("Data de vencimento (AAAA-MM-DD):", "2027-01-01");
+    if(!vencimento) return;
+
+    let validade = prompt("Regra de validade (Ex: Validade: 2 Anos):", "Validade: 2 Anos");
+
+    cursos.push({
+        funcionario: funcionario.toUpperCase(),
+        curso: curso.toUpperCase(),
+        vencimento: vencimento,
+        validade: validade || "Validade: 2 Anos",
+        arquivo: null
+    });
+
+    dispararSalvamentoAutomatico();
+    atualizarTabela();
+}
+
+solicitarPermissaoNotificacao();
+atualizarTabela();
+verificarNotificacoes();
+
+</script>
+
+</body>
+</html>
+
